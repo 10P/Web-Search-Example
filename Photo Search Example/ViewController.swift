@@ -14,10 +14,19 @@ class ViewController: UIViewController, UISearchBarDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        searchInstagramByHashtag("dogs")
+    }
+
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+
+    
+    func searchInstagramByHashtag(searchString:String) {
         let manager = AFHTTPRequestOperationManager()
         
-        manager.GET("https://api.instagram.com/v1/tags/cats/media/recent?client_id=099c1261712d435f956f15c5bda7aa27", parameters: nil,
+        manager.GET("https://api.instagram.com/v1/tags/\(searchString)/media/recent?client_id=099c1261712d435f956f15c5bda7aa27", parameters: nil,
             success: { (operation: AFHTTPRequestOperation!,responseObject: AnyObject!) in
                 println("JSON: " + responseObject.description)
                 
@@ -28,28 +37,25 @@ class ViewController: UIViewController, UISearchBarDelegate {
                             urlArray.append(imageURLString)
                         }
                     }
-                    self.scrollView.contentSize = CGSizeMake(320, 320 * CGFloat(dataArray.count))
+                    
+                    let imageWidth = self.view.frame.width
+                    self.scrollView.contentSize = CGSizeMake(imageWidth, imageWidth * CGFloat(dataArray.count))
                     
                     for var i = 0; i < urlArray.count; i++ {
-                            let imageView = UIImageView(frame: CGRectMake(0, 320 * CGFloat(i), 320, 320))
-                            imageView.setImageWithURL(NSURL(string: urlArray[i]))
-                            self.scrollView.addSubview(imageView)
-                        }
+                        let imageView = UIImageView(frame: CGRectMake(0, imageWidth * CGFloat(i), imageWidth, imageWidth))
+                        imageView.setImageWithURL(NSURL(string: urlArray[i]))
+                        self.scrollView.addSubview(imageView)
                     }
+                }
             },
             failure: { (operation: AFHTTPRequestOperation!,error: NSError!) in
                 println("Error: " + error.localizedDescription)
             }
-        
+            
         )
-        
+    
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
+    
 
     func searchBarSearchButtonClicked(searchBar: UISearchBar) {
         for subview in self.scrollView.subviews {
@@ -57,6 +63,12 @@ class ViewController: UIViewController, UISearchBarDelegate {
         }
         
         searchBar.resignFirstResponder()
+        
+        var searchString = String(map(searchBar.text.generate()) {
+                $0 == " " ? "_" : $0
+            })
+        
+        searchInstagramByHashtag(searchString)
     }
 }
 
